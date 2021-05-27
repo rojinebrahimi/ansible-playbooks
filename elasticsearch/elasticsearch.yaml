@@ -1,0 +1,72 @@
+---
+- name: Deploy Elasticsearch
+  hosts: all
+  become: true
+  vars_files:
+    - /vagrant/variables.yaml
+
+  tasks:
+    - name: Update APT
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
+    
+    - name: Configure OpenSSH
+      ufw:
+        rule: allow
+        name: "OpenSSH"
+
+    - name: Install OpenJDK 11
+      apt:
+        name:
+        - openjdk-11-jdk
+
+    - name: Add public GPG to APT
+      apt_key:
+        url: "{{ elastic_url }}"
+        state: present
+
+    - name: Add repository
+      apt_repository:
+        repo: "{{ elastic_repo }}" 
+        state: present
+    
+    - name: Update APT
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
+
+    - name: Install Elasticsearch
+      apt:
+        name:
+        - elasticsearch
+
+    - name: Configure Elasticsearch
+      template:
+        src: "/vagrant/elasticsearch.yml.j2"
+        dest: "/etc/elasticsearch/elasticsearch.yml"
+      notify:
+        - Start Elasticsearch
+
+    - name: Configure firewall
+      ufw:
+        rule: allow
+        port: 9200
+        proto: tcp
+      notify:
+        - Enable firewall 
+        - Reload firewall
+
+  handlers:    
+    - name: Start Elasticsearch
+      service:
+        name: elasticsearch
+        state: started
+
+    - name: Reload firewall
+      ufw:
+        state: reloaded
+
+    - name: Enable firewall
+      ufw:
+        state: enabled
