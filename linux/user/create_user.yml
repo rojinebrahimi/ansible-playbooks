@@ -1,0 +1,18 @@
+---
+- name: Manage users
+  hosts: Servers
+  gather_facts: no
+  become: yes
+  vars_files:
+    - variables.yml
+  tasks:
+    - name: Create user
+      user:
+        name: "{{ username }}"
+        password: "{{ password }}"
+        shell: "{{ user_shell }}"
+        groups: "{{ user_groups }}"
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+        state: present

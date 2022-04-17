@@ -1,0 +1,4 @@
+username: "test"
+password: "pAaSsWoRd"
+user_shell: "/bin/bash"
+user_groups: "sudo"
